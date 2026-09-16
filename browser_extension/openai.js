@@ -1,16 +1,9 @@
 // Thin wrapper around the OpenAI REST API, mirroring voice_agent/model/__init__.py:
 // - transcribeAudio() ports transcribe_audio() (Whisper, chunked under 20MB)
 // - summarize() ports create_summary_agent()'s instructions via chat completions
+// Model names and prompt text live in prompts.js (loaded before this file).
 
-const VOICE_MODEL_NAME = "whisper-1";
-const SUMMARY_MODEL_NAME = "gpt-5.4-nano";
 const MAX_CHUNK_BYTES = 20 * 1024 * 1024; // stay safely under OpenAI's 25MB limit
-
-const SUMMARY_INSTRUCTIONS = `You are a summary agent.
-Your task is to generate a english summary from the audio transcription.
-Analysed the fundamental things discussed in the meeting.
-What a user should take note into account.
-What is the next step mentioned.`;
 
 function splitBlobIntoChunks(blob, maxBytes) {
   if (blob.size <= maxBytes) {
