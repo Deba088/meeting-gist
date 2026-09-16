@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Voice Notes</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <main class="app">
+    <header class="app__header">
+      <h1>Voice Notes</h1>
+      <button id="openOptions" class="icon-btn" title="Settings">⚙️</button>
+    </header>
+
+    <section id="noKeyWarning" class="warning hidden">
+      No OpenAI API key set. <a id="goToOptions" href="#">Add one in settings</a>.
+    </section>
+
+    <section id="unlockSection" class="unlock hidden">
+      <label for="unlockPassword">Enter password to unlock API key</label>
+      <div class="unlock__row">
+        <input type="password" id="unlockPassword" autocomplete="off" />
+        <button id="unlockBtn" class="btn btn--primary btn--small">Unlock</button>
+      </div>
+      <p id="unlockError" class="hint hint--error hidden">Incorrect password.</p>
+    </section>
+
+    <div id="mainSection" class="hidden">
+      <section class="recorder">
+        <div class="recorder__status">
+          <span id="statusDot" class="dot"></span>
+          <span id="statusText">Ready</span>
+          <span id="timer" class="timer">00:00</span>
+        </div>
+
+        <div class="recorder__controls">
+          <button id="recordBtn" class="btn btn--primary">Start Recording</button>
+          <button id="stopBtn" class="btn btn--danger hidden">Stop</button>
+        </div>
+
+        <p class="hint">Keep this popup open while recording — closing it stops the recording.</p>
+      </section>
+
+      <section class="upload">
+        <label for="fileInput" class="btn btn--secondary">Or upload an audio file</label>
+        <input type="file" id="fileInput" accept="audio/*" class="hidden" />
+      </section>
+
+      <section id="progress" class="progress hidden">
+        <div class="spinner"></div>
+        <span id="progressText">Transcribing…</span>
+      </section>
+
+      <section id="results" class="results hidden">
+        <div class="tabs">
+          <button class="tab tab--active" data-tab="summary">Summary</button>
+          <button class="tab" data-tab="transcript">Transcript</button>
+        </div>
+
+        <div id="summaryPane" class="pane">
+          <pre id="summaryText" class="text-block"></pre>
+          <button class="btn btn--secondary btn--small" data-copy="summaryText">Copy</button>
+        </div>
+
+        <div id="transcriptPane" class="pane hidden">
+          <pre id="transcriptText" class="text-block"></pre>
+          <button class="btn btn--secondary btn--small" data-copy="transcriptText">Copy</button>
+        </div>
+      </section>
+
+      <section class="history">
+        <div class="history__header">
+          <h2>Recent sessions</h2>
+        </div>
+        <ul id="historyList" class="history__list"></ul>
+        <p id="historyEmpty" class="hint">No sessions yet.</p>
+      </section>
+    </div>
+
+    <section id="errorBox" class="error hidden"></section>
+  </main>
+
+  <script src="crypto.js"></script>
+  <script src="openai.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

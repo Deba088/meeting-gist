@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Voice Notes Settings</title>
+  <link rel="stylesheet" href="options.css" />
+</head>
+<body>
+  <main class="options">
+    <h1>Voice Notes Settings</h1>
+
+    <label for="apiKey">OpenAI API Key</label>
+    <input type="password" id="apiKey" placeholder="sk-..." autocomplete="off" />
+
+    <label for="password">Lock Password</label>
+    <input type="password" id="password" placeholder="Choose a password" autocomplete="new-password" />
+
+    <label for="passwordConfirm">Confirm Password</label>
+    <input type="password" id="passwordConfirm" placeholder="Repeat password" autocomplete="new-password" />
+
+    <p class="hint">
+      Your API key is encrypted with this password before it's stored
+      (chrome.storage.local, AES-GCM). The password itself is never saved —
+      you'll be asked for it each time the extension needs to use the key.
+      If you forget it, you'll need to re-enter your OpenAI key from scratch.
+      Get a key at
+      <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">platform.openai.com/api-keys</a>.
+    </p>
+
+    <button id="saveBtn" class="btn">Save</button>
+    <button id="clearBtn" class="btn btn--secondary">Remove stored key</button>
+    <span id="savedMsg" class="saved-msg hidden"></span>
+
+    <hr class="divider" />
+
+    <h1>History</h1>
+    <p class="hint">View the transcripts and summaries from your last 5 sessions.</p>
+    <button id="historyBtn" class="btn btn--secondary">Open History</button>
+  </main>
+
+  <script src="crypto.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

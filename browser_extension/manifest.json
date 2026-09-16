@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "Voice Notes: Record, Transcribe & Summarize",
+  "version": "1.0.0",
+  "description": "Record microphone audio, transcribe it with OpenAI Whisper, and generate a meeting summary.",
+  "permissions": ["storage", "offscreen"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Voice Notes"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "options_page": "options.html"
+}
