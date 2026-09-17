@@ -3,7 +3,7 @@
   "name": "MeetingGist",
   "version": "1.0.0",
   "description": "Record meeting audio and generate a meeting summary.",
-  "permissions": ["storage", "offscreen"],
+  "permissions": ["storage", "offscreen", "notifications"],
   "background": {
     "service_worker": "background.js"
   },

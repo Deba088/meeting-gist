@@ -21,8 +21,6 @@ const mainSection = document.getElementById("mainSection");
 const historyList = document.getElementById("historyList");
 const historyEmpty = document.getElementById("historyEmpty");
 
-const MAX_HISTORY = 5;
-
 let timerInterval = null;
 let cachedApiKey = null;
 
@@ -126,6 +124,8 @@ function startTimerFrom(startedAt) {
 
 async function startRecording() {
   clearError();
+  results.classList.add("hidden");
+  await chrome.storage.local.remove("processingState");
   const apiKey = await getApiKey();
   if (!apiKey) return;
 
@@ -146,7 +146,6 @@ async function startRecording() {
 async function stopRecording() {
   clearInterval(timerInterval);
   timerEl.textContent = "00:00";
-  setStatus("Processing…", false);
   recordBtn.classList.remove("hidden");
   stopBtn.classList.add("hidden");
 
@@ -157,8 +156,16 @@ async function stopRecording() {
     return;
   }
 
-  const blob = await (await fetch(result.recording.dataUrl)).blob();
-  await handleAudio(blob, "recording.webm");
+  // Handed off to the background service worker (see background.js), which
+  // keeps running the transcribe/summarize pipeline even if this popup is
+  // closed right now — closing the popup no longer loses the recording.
+  await chrome.runtime.sendMessage({
+    type: "process-recording",
+    dataUrl: result.recording.dataUrl,
+    fileName: "recording.webm",
+  });
+  setStatus("Processing…", false);
+  setProgress(true, "Transcribing…");
 }
 
 // If the popup was closed mid-recording (offscreen doc kept recording) and
@@ -178,42 +185,64 @@ async function resyncRecordingUi() {
   }
 }
 
+function blobToDataUrl(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+// Handed off to the background service worker (see background.js) so
+// transcription/summarization keeps running even if this popup closes.
 async function handleAudio(blob, fileName) {
   clearError();
   results.classList.add("hidden");
   const apiKey = await getApiKey();
   if (!apiKey) return;
 
-  try {
+  const dataUrl = await blobToDataUrl(blob);
+  await chrome.runtime.sendMessage({ type: "process-recording", dataUrl, fileName });
+  setStatus("Processing…", false);
+  setProgress(true, "Transcribing…");
+}
+
+// Reflects whatever background.js's pipeline is currently doing (or last
+// did), so reopening the popup mid-processing — or after it finished while
+// closed — shows the right thing instead of a blank "Ready" state.
+function applyProcessingState(state) {
+  if (!state) return;
+
+  if (state.status === "transcribing") {
+    setStatus("Processing…", false);
     setProgress(true, "Transcribing…");
-    const transcript = await transcribeAudio(blob, apiKey, fileName);
-
+  } else if (state.status === "summarizing") {
+    setStatus("Processing…", false);
     setProgress(true, "Summarizing…");
-    const summary = await summarize(transcript, apiKey);
-
-    transcriptText.textContent = transcript;
-    summaryText.textContent = summary;
+  } else if (state.status === "done" && state.result) {
+    setProgress(false);
+    transcriptText.textContent = state.result.transcript;
+    summaryText.textContent = state.result.summary;
     results.classList.remove("hidden");
     setStatus("Done", false);
-
-    await saveToHistory({ transcript, summary, timestamp: Date.now() });
-  } catch (err) {
-    showError(err.message);
-    setStatus("Ready", false);
-  } finally {
+  } else if (state.status === "error") {
     setProgress(false);
+    showError(state.error || "Processing failed.");
+    setStatus("Ready", false);
   }
 }
 
-// Keeps the last MAX_HISTORY sessions in chrome.storage.local so they survive
-// browser restarts. Transcripts/summaries aren't secret the way the API key
-// is, so they're stored in plain (unencrypted) storage.
-async function saveToHistory(entry) {
-  const { sessionHistory = [] } = await chrome.storage.local.get("sessionHistory");
-  const updated = [entry, ...sessionHistory].slice(0, MAX_HISTORY);
-  await chrome.storage.local.set({ sessionHistory: updated });
-  renderHistory(updated);
+async function resyncProcessingUi() {
+  const { processingState } = await chrome.storage.local.get("processingState");
+  applyProcessingState(processingState);
 }
+
+chrome.storage.onChanged.addListener((changes, areaName) => {
+  if (areaName !== "local") return;
+  if (changes.processingState) applyProcessingState(changes.processingState.newValue);
+  if (changes.sessionHistory) renderHistory(changes.sessionHistory.newValue || []);
+});
 
 function formatTimestamp(ts) {
   return new Date(ts).toLocaleString(undefined, {
@@ -304,6 +333,7 @@ unlockPassword.addEventListener("keydown", (e) => {
   const state = await refreshGate();
   if (state === "unlocked") {
     await resyncRecordingUi();
+    await resyncProcessingUi();
   }
   await loadHistory();
 })();
