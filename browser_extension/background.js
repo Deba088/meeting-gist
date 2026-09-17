@@ -28,7 +28,7 @@ function setRecordingBadge(isRecording) {
   chrome.action.setBadgeText({ text: isRecording ? "●" : "" });
   chrome.action.setBadgeBackgroundColor({ color: "#dc2626" });
   chrome.action.setTitle({
-    title: isRecording ? "Voice Notes — recording…" : "Voice Notes",
+    title: isRecording ? "MeetingGist — recording…" : "MeetingGist",
   });
 }
 
