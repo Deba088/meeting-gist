@@ -1,15 +1,15 @@
 {
   "manifest_version": 3,
-  "name": "Voice Notes: Record, Transcribe & Summarize",
+  "name": "MeetingGist",
   "version": "1.0.0",
-  "description": "Record microphone audio, transcribe it with OpenAI Whisper, and generate a meeting summary.",
+  "description": "Record meeting audio and generate a meeting summary.",
   "permissions": ["storage", "offscreen"],
   "background": {
     "service_worker": "background.js"
   },
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Voice Notes"
+    "default_title": "MeetingGist"
   },
   "icons": {
     "16": "icons/icon16.png",
